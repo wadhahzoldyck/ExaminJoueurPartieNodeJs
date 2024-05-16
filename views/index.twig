@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>{{ title }}</h1>
+  <form id="gameForm" method="post">
+    <label for="name">Nom partie:</label>
+    <input type="text" id="name" name="name" required><br><br>
+    <label for="joueur1">ID JOUEUR1:</label>
+    <input type="text" id="joueur1" name="joueur1" required><br><br>
+    <label for="joueur2">ID JOUEUR2:</label>
+    <input type="text" id="joueur2" name="joueur2" required><br><br>
+    <button type="submit">envoyer</button>
+    <button type="button" id="showStats">afficher stat</button>
+  </form>
+
+  <div id="notification"></div>
+    <div id="stats"></div>
+
+
+  <script>
+    const socket = io.connect();
+    console.log(socket);
+
+    document.getElementById('gameForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const joueur1 = document.getElementById('joueur1').value;
+      const joueur2 = document.getElementById('joueur2').value;
+
+      socket.emit('submitForm', { name, joueur1, joueur2 });
+
+      document.getElementById('gameForm').reset();
+    });
+
+    document.getElementById('showStats').addEventListener('click', function(e){
+             e.preventDefault();
+                   const name = document.getElementById('name').value;
+                   const joueur1 = document.getElementById('joueur1').value;
+                   const joueur2 = document.getElementById('joueur2').value;
+                   socket.emit('submitForm2', {  joueur1, joueur2 , name });
+    })
+
+    socket.on('newGame', (game) => {
+      const notification = document.getElementById('notification');
+      notification.innerHTML = `
+        <p>Partie : ${game.nom}</p>
+        <p>Id de joueur 1 : ${game.joueur_1}</p>
+        <p>Id de joueur 2  :${game.joueur_2}</p>
+      `;
+    });
+        socket.on('newGame2', (game) => {
+      const notification = document.getElementById('stats');
+      console.log(game);
+      notification.innerHTML = `
+        <p>Stats : </p>
+        <p>Nom : ${game.partie.nom}</p>
+        <p>Nom  de joueur 1 : ${game.joueur1.pseudo}</p>
+        <p>sante : ${game.joueur1.sante}</p>
+        <p>score : ${game.joueur1.score}</p>
+
+
+        <p>Nom  de joueur 1 : ${game.joueur2.pseudo}</p>
+        <p>sante : ${game.joueur2.sante}</p>
+        <p>score : ${game.joueur2.score}</p>      `;
+    });
+
+    socket.on('error', (errorMessage) => {
+      alert(`Error: ${errorMessage}`);
+    });
+  </script>
+</body>
+</html>
